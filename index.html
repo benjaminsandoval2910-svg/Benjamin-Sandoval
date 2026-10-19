@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Super Mario Bros - World 1-1</title>
-  <meta name="description" content="Juego de plataformas 2D en HTML5 Canvas inspirado en Super Mario Bros con físicas clásicas, enemigos, bloques sorpresa, monedas y banderín de meta." />
-  <meta property="og:title" content="Super Mario Bros - World 1-1" />
-  <meta property="og:description" content="Juego de plataformas 2D en HTML5 Canvas con físicas de Super Mario Bros, Goombas, Koopas, champiñones y castillo final." />
+  <title>Super Mario Bros - 6 Mundos Clásicos</title>
+  <meta name="description" content="Juego de plataformas 2D en HTML5 Canvas con 6 niveles progresivos, escenarios cambiantes, físicas de Super Mario Bros, Goombas, Koopas y castillo final." />
+  <meta property="og:title" content="Super Mario Bros - 6 Mundos Clásicos" />
+  <meta property="og:description" content="Juego de plataformas 2D en HTML5 Canvas con 6 niveles de dificultad creciente y diferentes escenarios temáticos." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="stylesheet" href="./style.css" />
@@ -18,7 +18,7 @@
     <header class="arcade-header">
       <div class="game-title">
         <span>★ SUPER MARIO BROS ★</span>
-        <span class="badge">MUNDO 1-1</span>
+        <span class="badge" id="levelBadge">6 MUNDOS</span>
       </div>
       <div class="header-controls">
         <button id="soundBtn" class="retro-btn-sm" type="button" title="Activar/Silenciar sonido (M)">
@@ -76,7 +76,7 @@
         </div>
       </div>
       <div class="info-tag">
-        <span>HTML5 CANVAS • VANILLA JS • VERCEL STATIC</span>
+        <span id="worldInfoTag">MUNDO 1-1 • PRADERA SOLEADA</span>
       </div>
     </footer>
   </main>

@@ -1,14 +1,18 @@
 /**
  * ============================================================================
- * SUPER MARIO BROS - WORLD 1-1 ENGINE
+ * SUPER MARIO BROS - 6 WORLDS EDITION
  * Pure Vanilla JavaScript (ES6+), Canvas 2D, Web Audio API Synthesis
- * Complete 2D platformer with tuned high jumps, Super Mushroom power-ups,
- * Goombas, Koopa Troopas with kickable shells, breakable bricks, question blocks,
- * coins, warp pipes, flagpole slide, and finish castle with fireworks.
+ * Features 6 distinct progressive worlds with increasing difficulty:
+ *  - Mundo 1-1: Pradera Soleada (Overworld Grassland)
+ *  - Mundo 1-2: Caverna Subterránea (Underground Cavern)
+ *  - Mundo 1-3: Colinas del Atardecer (Sunset Mushroom Heights)
+ *  - Mundo 1-4: Castillo de Lava (Bowser's Lava Dungeon)
+ *  - Mundo 2-1: Dunas del Desierto (Desert Pyramids)
+ *  - Mundo 2-2: Fortaleza Celestial (Cosmic Star Fortress)
  * ============================================================================
  */
 
-// --- 1. WEB AUDIO SYNTHESIZER (8-BIT RETRO SOUND FX) ---
+// --- 1. WEB AUDIO SYNTHESIZER ---
 class SoundSystem {
   constructor() {
     this.ctx = null;
@@ -32,124 +36,98 @@ class SoundSystem {
     return this.muted;
   }
 
-  // Classic Mario Jump (Frequency sweep)
   jump(isSuper = false) {
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-
       osc.type = 'square';
       const startFreq = isSuper ? 130 : 160;
       const endFreq = isSuper ? 480 : 580;
       osc.frequency.setValueAtTime(startFreq, now);
       osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.17);
-
       gain.gain.setValueAtTime(0.18, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.17);
-
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-
       osc.start(now);
       osc.stop(now + 0.17);
     } catch (_) {}
   }
 
-  // Coin Chime (B5 988Hz -> E6 1319Hz)
   coin() {
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-
       osc.type = 'sine';
       osc.frequency.setValueAtTime(987.77, now);
       osc.frequency.setValueAtTime(1318.51, now + 0.08);
-
       gain.gain.setValueAtTime(0.24, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-
       osc.start(now);
       osc.stop(now + 0.35);
     } catch (_) {}
   }
 
-  // Stomp Goomba / Koopa
   stomp() {
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(190, now);
       osc.frequency.exponentialRampToValueAtTime(50, now + 0.12);
-
       gain.gain.setValueAtTime(0.3, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-
       osc.start(now);
       osc.stop(now + 0.12);
     } catch (_) {}
   }
 
-  // Kick Koopa Shell
   kickShell() {
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(450, now);
       osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
-
       gain.gain.setValueAtTime(0.28, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-
       osc.start(now);
       osc.stop(now + 0.15);
     } catch (_) {}
   }
 
-  // Block Bump
   bump() {
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(110, now);
       osc.frequency.exponentialRampToValueAtTime(45, now + 0.1);
-
       gain.gain.setValueAtTime(0.24, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-
       osc.start(now);
       osc.stop(now + 0.1);
     } catch (_) {}
   }
 
-  // Brick Shatter
   brickBreak() {
     if (this.muted || !this.ctx) return;
     try {
@@ -157,30 +135,23 @@ class SoundSystem {
       const bufferSize = this.ctx.sampleRate * 0.18;
       const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
       const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
-      }
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
       const noise = this.ctx.createBufferSource();
       noise.buffer = buffer;
-
       const filter = this.ctx.createBiquadFilter();
       filter.type = 'lowpass';
       filter.frequency.setValueAtTime(800, now);
       filter.frequency.exponentialRampToValueAtTime(80, now + 0.18);
-
       const gain = this.ctx.createGain();
       gain.gain.setValueAtTime(0.35, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
-
       noise.connect(filter);
       filter.connect(gain);
       gain.connect(this.ctx.destination);
-
       noise.start(now);
     } catch (_) {}
   }
 
-  // Mushroom Sprout sound
   sprout() {
     if (this.muted || !this.ctx) return;
     try {
@@ -199,7 +170,6 @@ class SoundSystem {
     } catch (_) {}
   }
 
-  // Super Mushroom Power-up Fanfare!
   powerup() {
     if (this.muted || !this.ctx) return;
     try {
@@ -221,7 +191,6 @@ class SoundSystem {
     } catch (_) {}
   }
 
-  // Flagpole Slide Whistle
   flagSlide() {
     if (this.muted || !this.ctx) return;
     try {
@@ -240,18 +209,17 @@ class SoundSystem {
     } catch (_) {}
   }
 
-  // Victory Stage Clear Fanfare
   victory() {
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
       const melody = [
-        { f: 523.25, d: 0.12 }, // C5
-        { f: 659.25, d: 0.12 }, // E5
-        { f: 783.99, d: 0.12 }, // G5
-        { f: 1046.5, d: 0.28 }, // C6
-        { f: 880.00, d: 0.15 }, // A5
-        { f: 1046.5, d: 0.40 }  // C6
+        { f: 523.25, d: 0.12 },
+        { f: 659.25, d: 0.12 },
+        { f: 783.99, d: 0.12 },
+        { f: 1046.5, d: 0.28 },
+        { f: 880.00, d: 0.15 },
+        { f: 1046.5, d: 0.40 }
       ];
       let t = now;
       melody.forEach(item => {
@@ -270,7 +238,6 @@ class SoundSystem {
     } catch (_) {}
   }
 
-  // Death Jingle
   die() {
     if (this.muted || !this.ctx) return;
     try {
@@ -292,7 +259,6 @@ class SoundSystem {
     } catch (_) {}
   }
 
-  // Game Over Jingle
   gameover() {
     if (this.muted || !this.ctx) return;
     try {
@@ -379,46 +345,111 @@ class FloatingText {
   }
 }
 
-// --- 3. GAME CONSTANTS & COLOR PALETTES ---
+// --- 3. CONSTANTS & WORLD THEMES ---
 const TILE_SIZE = 32;
-const GRAVITY = 0.49; // Tuned for higher, floatier, classic jump arc
+const GRAVITY = 0.49;
 const MAX_FALL_SPEED = 11;
 
-const COLORS = {
-  sky: '#5c94fc',
-  groundTop: '#00a800',
-  groundBody: '#b84418',
-  groundBrick: '#8b2500',
-  brickBody: '#b84418',
-  brickHighlight: '#e07438',
-  brickShadow: '#541200',
-  questionGold: '#fcd116',
-  questionDark: '#c79200',
-  questionEmpty: '#8b7355',
-  pipeGreen: '#00a800',
-  pipeHighlight: '#5cfc5c',
-  pipeShadow: '#005800',
-  marioRed: '#e52521',
-  marioBlue: '#0038a8',
-  marioSkin: '#fcbc98',
-  marioHair: '#543000',
-  goombaBrown: '#a04000',
-  goombaTan: '#fcbc98',
-  koopaGreen: '#00a800',
-  koopaYellow: '#fcbc00',
-  shroomRed: '#e52521',
-  shroomWhite: '#ffffff',
-  cloudWhite: '#ffffff',
-  hillGreen: '#00a800',
-  hillDark: '#007000'
-};
+// 6 Progressive Worlds with unique color palettes & aesthetics
+const WORLD_THEMES = [
+  {
+    code: '1-1',
+    name: 'Pradera Soleada',
+    sky: '#5c94fc',
+    skyType: 'normal',
+    groundTop: '#00a800',
+    groundBody: '#b84418',
+    brickBody: '#b84418',
+    brickHighlight: '#e07438',
+    brickShadow: '#541200',
+    pipeGreen: '#00a800',
+    pipeHighlight: '#5cfc5c',
+    pipeShadow: '#005800',
+    hasLava: false
+  },
+  {
+    code: '1-2',
+    name: 'Caverna Subterránea',
+    sky: '#0a0d16',
+    skyType: 'cavern',
+    groundTop: '#008088',
+    groundBody: '#004860',
+    brickBody: '#005878',
+    brickHighlight: '#2090b8',
+    brickShadow: '#002030',
+    pipeGreen: '#008899',
+    pipeHighlight: '#40d0e0',
+    pipeShadow: '#004450',
+    hasLava: false
+  },
+  {
+    code: '1-3',
+    name: 'Colinas del Atardecer',
+    sky: '#d85830',
+    skyType: 'sunset',
+    groundTop: '#d87020',
+    groundBody: '#883010',
+    brickBody: '#c83820',
+    brickHighlight: '#f06040',
+    brickShadow: '#601808',
+    pipeGreen: '#b88018',
+    pipeHighlight: '#f8c048',
+    pipeShadow: '#604008',
+    hasLava: false
+  },
+  {
+    code: '1-4',
+    name: 'Castillo de Lava',
+    sky: '#141218',
+    skyType: 'castle',
+    groundTop: '#505060',
+    groundBody: '#282834',
+    brickBody: '#383848',
+    brickHighlight: '#686880',
+    brickShadow: '#181824',
+    pipeGreen: '#555566',
+    pipeHighlight: '#888899',
+    pipeShadow: '#222233',
+    hasLava: true // Lava hazards in gaps!
+  },
+  {
+    code: '2-1',
+    name: 'Dunas del Desierto',
+    sky: '#f8d070',
+    skyType: 'desert',
+    groundTop: '#e0b040',
+    groundBody: '#b88828',
+    brickBody: '#d09830',
+    brickHighlight: '#f8c050',
+    brickShadow: '#785010',
+    pipeGreen: '#8a9a20',
+    pipeHighlight: '#c0d840',
+    pipeShadow: '#405008',
+    hasLava: false
+  },
+  {
+    code: '2-2',
+    name: 'Fortaleza Celestial',
+    sky: '#0a041c',
+    skyType: 'cosmic',
+    groundTop: '#ffd700',
+    groundBody: '#401868',
+    brickBody: '#582088',
+    brickHighlight: '#8840c8',
+    brickShadow: '#200840',
+    pipeGreen: '#ffd700',
+    pipeHighlight: '#fff8a0',
+    pipeShadow: '#997700',
+    hasLava: true
+  }
+];
 
 // --- 4. PLAYER (MARIO / SUPER MARIO) ---
 class Player {
   constructor(x, y) {
     this.startX = x;
     this.startY = y;
-    this.isSuper = false; // Normal vs Super Mario
+    this.isSuper = false;
     this.reset();
   }
 
@@ -430,7 +461,7 @@ class Player {
     this.vx = 0;
     this.vy = 0;
     this.isGrounded = false;
-    this.facing = 1; // 1: right, -1: left
+    this.facing = 1;
     this.animFrame = 0;
     this.animTimer = 0;
     this.isSkidding = false;
@@ -443,7 +474,7 @@ class Player {
     this.isSuper = isSuper;
     const oldH = this.height;
     this.height = isSuper ? 38 : 30;
-    this.y -= (this.height - oldH); // Keep feet planted on ground
+    this.y -= (this.height - oldH);
   }
 
   update(keys, sounds, particles) {
@@ -451,7 +482,6 @@ class Player {
       this.invulnerableTimer--;
     }
 
-    // Horizontal Movement
     const accel = 0.40;
     const maxSpeed = 4.2;
     const friction = this.isGrounded ? 0.82 : 0.92;
@@ -472,13 +502,11 @@ class Player {
       if (Math.abs(this.vx) < 0.05) this.vx = 0;
     }
 
-    // Skid detection
     this.isSkidding = (this.isGrounded && ((this.vx > 0.8 && moveLeft) || (this.vx < -0.8 && moveRight)));
     if (this.isSkidding && Math.random() < 0.3) {
       particles.push(new Particle(this.x + this.width / 2, this.y + this.height - 2, (Math.random() - 0.5) * 2, -1 - Math.random(), '#d8d8d8', 4, 15, 0.1));
     }
 
-    // Coyote time & Jump buffer
     if (this.isGrounded) {
       this.coyoteTimer = 6;
     } else if (this.coyoteTimer > 0) {
@@ -493,7 +521,6 @@ class Player {
     }
     this.prevJumpPressed = jumpPressed;
 
-    // Jump Execution (Tuned for satisfying higher jump)
     if (this.jumpBufferTimer > 0 && this.coyoteTimer > 0) {
       this.vy = -12.2;
       this.isGrounded = false;
@@ -501,24 +528,20 @@ class Player {
       this.jumpBufferTimer = 0;
       sounds.jump(this.isSuper);
 
-      // Dust puffs
       for (let i = 0; i < 4; i++) {
         particles.push(new Particle(this.x + this.width / 2, this.y + this.height, (Math.random() - 0.5) * 2.5, -0.5 - Math.random(), '#ccc', 3, 14, 0.05));
       }
     }
 
-    // Variable jump height
     if (!jumpPressed && this.vy < -4.0) {
       this.vy *= 0.52;
     }
 
-    // Apply Gravity
     this.vy += GRAVITY;
     if (this.vy > MAX_FALL_SPEED) {
       this.vy = MAX_FALL_SPEED;
     }
 
-    // Animation cycle
     if (this.isGrounded && Math.abs(this.vx) > 0.3) {
       this.animTimer += Math.abs(this.vx) * 0.18;
       if (this.animTimer > 1) {
@@ -533,7 +556,7 @@ class Player {
 
   draw(ctx, camX) {
     if (this.invulnerableTimer > 0 && Math.floor(this.invulnerableTimer / 4) % 2 === 0) {
-      return; // Flicker
+      return;
     }
 
     const px = Math.round(this.x - camX);
@@ -545,12 +568,11 @@ class Player {
     ctx.translate(px + w / 2, py + h);
     ctx.scale(this.facing, 1);
 
-    // Procedural 8-bit Mario Sprite
     const isSuper = this.isSuper;
     const yOffset = isSuper ? -8 : 0;
 
     // Feet / Shoes
-    ctx.fillStyle = COLORS.marioHair;
+    ctx.fillStyle = '#543000';
     if (!this.isGrounded) {
       ctx.fillRect(-12, -6, 10, 6);
       ctx.fillRect(2, -8, 10, 6);
@@ -568,22 +590,22 @@ class Player {
       ctx.fillRect(1, -5, 10, 5);
     }
 
-    // Blue Overalls / Pants
-    ctx.fillStyle = COLORS.marioBlue;
+    // Blue Overalls
+    ctx.fillStyle = '#0038a8';
     const pantsH = isSuper ? 14 : 10;
     ctx.fillRect(-7, -15 + yOffset / 2, 14, pantsH);
 
     // Yellow Buttons
-    ctx.fillStyle = COLORS.questionGold;
+    ctx.fillStyle = '#fcd116';
     ctx.fillRect(-4, -13 + yOffset / 2, 2, 2);
     ctx.fillRect(2, -13 + yOffset / 2, 2, 2);
 
-    // Red Shirt / Torso
-    ctx.fillStyle = COLORS.marioRed;
+    // Red Shirt
+    ctx.fillStyle = '#e52521';
     const torsoH = isSuper ? 9 : 6;
     ctx.fillRect(-8, -20 + yOffset, 16, torsoH);
 
-    // Hands / Arms
+    // Hands
     if (!this.isGrounded) {
       ctx.fillRect(-12, -26 + yOffset, 5, 8);
       ctx.fillRect(7, -18 + yOffset, 5, 6);
@@ -592,21 +614,19 @@ class Player {
       ctx.fillRect(7, -18 + yOffset, 4, 7);
     }
 
-    // Head / Face (Flesh)
-    ctx.fillStyle = COLORS.marioSkin;
+    // Head / Face
+    ctx.fillStyle = '#fcbc98';
     ctx.fillRect(-6, -26 + yOffset, 12, 7);
-    // Nose
-    ctx.fillRect(3, -25 + yOffset, 4, 3);
+    ctx.fillRect(3, -25 + yOffset, 4, 3); // Nose
 
-    // Hair / Mustache (Dark Brown)
-    ctx.fillStyle = COLORS.marioHair;
+    // Hair / Mustache
+    ctx.fillStyle = '#543000';
     ctx.fillRect(-7, -26 + yOffset, 4, 6);
-    ctx.fillRect(0, -22 + yOffset, 7, 3); // Mustache
-    // Eye
-    ctx.fillRect(2, -26 + yOffset, 2, 2);
+    ctx.fillRect(0, -22 + yOffset, 7, 3);
+    ctx.fillRect(2, -26 + yOffset, 2, 2); // Eye
 
-    // Red Cap with Visor
-    ctx.fillStyle = COLORS.marioRed;
+    // Red Cap
+    ctx.fillStyle = '#e52521';
     ctx.fillRect(-7, -30 + yOffset, 14, 5);
     ctx.fillRect(1, -28 + yOffset, 8, 3);
 
@@ -614,7 +634,7 @@ class Player {
   }
 }
 
-// --- 5. SUPER MUSHROOM POWER-UP ---
+// --- 5. SUPER MUSHROOM ITEM ---
 class Mushroom {
   constructor(x, y) {
     this.x = x;
@@ -682,43 +702,39 @@ class Mushroom {
     const py = Math.round(this.y);
 
     ctx.save();
-    // Mushroom Cap
-    ctx.fillStyle = COLORS.shroomRed;
+    ctx.fillStyle = '#e52521';
     ctx.beginPath();
     ctx.arc(px + 12, py + 10, 11, Math.PI, 0, false);
     ctx.fill();
     ctx.fillRect(px + 1, py + 9, 22, 5);
 
-    // White Dots on Cap
     ctx.fillStyle = '#fff';
     ctx.fillRect(px + 10, py + 3, 4, 4);
     ctx.fillRect(px + 3, py + 8, 4, 4);
     ctx.fillRect(px + 17, py + 8, 4, 4);
 
-    // Stem (Flesh)
-    ctx.fillStyle = COLORS.marioSkin;
+    ctx.fillStyle = '#fcbc98';
     ctx.fillRect(px + 6, py + 14, 12, 10);
-    // Eyes on stem
     ctx.fillStyle = '#000';
     ctx.fillRect(px + 8, py + 16, 2, 4);
     ctx.fillRect(px + 14, py + 16, 2, 4);
-
     ctx.restore();
   }
 }
 
-// --- 6. ENEMIES: GOOMBA & KOOPA TROOPA ---
+// --- 6. ENEMIES (GOOMBAS & KOOPAS) ---
 class Enemy {
-  constructor(x, y, type = 'goomba') {
+  constructor(x, y, type = 'goomba', speed = 1.1) {
     this.x = x;
     this.y = y;
-    this.type = type; // 'goomba' or 'koopa'
-    this.width = type === 'goomba' ? 26 : 26;
+    this.type = type;
+    this.width = 26;
     this.height = type === 'goomba' ? 26 : 32;
-    this.vx = -1.1;
+    this.vx = -speed;
+    this.baseSpeed = speed;
     this.vy = 0;
     this.isDead = false;
-    this.isShell = false; // For Koopa Troopa shell state
+    this.isShell = false;
     this.shellMoving = false;
     this.deadTimer = 0;
     this.animTimer = 0;
@@ -731,7 +747,6 @@ class Enemy {
       return;
     }
 
-    // Shell moving at high speed
     if (this.isShell && this.shellMoving) {
       this.vx = this.shellMoving > 0 ? 6.5 : -6.5;
     } else if (this.isShell && !this.shellMoving) {
@@ -766,7 +781,6 @@ class Enemy {
       }
     }
 
-    // Animation
     this.animTimer += 0.12;
     if (this.animTimer > 1) {
       this.animFrame = (this.animFrame + 1) % 2;
@@ -789,10 +803,9 @@ class Enemy {
 
     if (this.type === 'goomba') {
       if (this.isDead) {
-        // Squashed Goomba
-        ctx.fillStyle = COLORS.goombaBrown;
+        ctx.fillStyle = '#a04000';
         ctx.fillRect(px, py + 16, this.width, 10);
-        ctx.fillStyle = COLORS.goombaTan;
+        ctx.fillStyle = '#fcbc98';
         ctx.fillRect(px + 4, py + 18, 4, 3);
         ctx.fillRect(px + 18, py + 18, 4, 3);
         ctx.fillStyle = '#000';
@@ -802,7 +815,6 @@ class Enemy {
       }
 
       ctx.save();
-      // Feet
       ctx.fillStyle = '#000';
       if (this.animFrame === 0) {
         ctx.fillRect(px - 1, py + 20, 8, 6);
@@ -812,18 +824,15 @@ class Enemy {
         ctx.fillRect(px + 19, py + 20, 8, 6);
       }
 
-      // Stem (Tan)
-      ctx.fillStyle = COLORS.goombaTan;
+      ctx.fillStyle = '#fcbc98';
       ctx.fillRect(px + 5, py + 14, 16, 8);
 
-      // Mushroom Dome (Brown)
-      ctx.fillStyle = COLORS.goombaBrown;
+      ctx.fillStyle = '#a04000';
       ctx.beginPath();
       ctx.arc(px + 13, py + 11, 12, Math.PI, 0, false);
       ctx.fill();
       ctx.fillRect(px + 1, py + 10, 24, 6);
 
-      // Angry Eyes
       ctx.fillStyle = '#fff';
       ctx.fillRect(px + 5, py + 8, 4, 6);
       ctx.fillRect(px + 17, py + 8, 4, 6);
@@ -831,35 +840,29 @@ class Enemy {
       ctx.fillRect(px + 7, py + 9, 2, 4);
       ctx.fillRect(px + 17, py + 9, 2, 4);
 
-      // Eyebrows
       ctx.fillRect(px + 4, py + 6, 6, 2);
       ctx.fillRect(px + 16, py + 6, 6, 2);
       ctx.restore();
     } else {
-      // Koopa Troopa
       ctx.save();
       if (this.isShell) {
-        // Green Shell Form
-        ctx.fillStyle = COLORS.koopaGreen;
+        ctx.fillStyle = '#00a800';
         ctx.beginPath();
         ctx.arc(px + 13, py + 16, 12, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#fff';
         ctx.fillRect(px + 8, py + 12, 10, 8);
       } else {
-        // Walking Koopa
-        ctx.fillStyle = COLORS.koopaYellow;
+        ctx.fillStyle = '#fcbc00';
         ctx.fillRect(px + 4, py + 20, 6, 8);
         ctx.fillRect(px + 16, py + 20, 6, 8);
 
-        // Green Shell
-        ctx.fillStyle = COLORS.koopaGreen;
+        ctx.fillStyle = '#00a800';
         ctx.beginPath();
         ctx.arc(px + 13, py + 16, 11, 0, Math.PI * 2);
         ctx.fill();
 
-        // Yellow Head & Beak
-        ctx.fillStyle = COLORS.koopaYellow;
+        ctx.fillStyle = '#fcbc00';
         ctx.beginPath();
         ctx.arc(px + (this.vx > 0 ? 18 : 6), py + 8, 8, 0, Math.PI * 2);
         ctx.fill();
@@ -871,7 +874,7 @@ class Enemy {
   }
 }
 
-// --- 7. BLOCKS & PIPES ---
+// --- 7. BLOCKS, PIPES & COINS ---
 class Block {
   constructor(x, y, type = 'brick', item = null) {
     this.x = x;
@@ -879,7 +882,7 @@ class Block {
     this.width = TILE_SIZE;
     this.height = TILE_SIZE;
     this.type = type; // 'brick', 'question', 'empty', 'ground'
-    this.item = item; // 'coin', 'mushroom'
+    this.item = item;
     this.bumpOffset = 0;
     this.bumpSpeed = 0;
     this.active = true;
@@ -902,21 +905,20 @@ class Block {
         game.addCoin();
         game.floatingTexts.push(new FloatingText('+200', this.x + 4, this.y - 12));
         for (let i = 0; i < 5; i++) {
-          game.particles.push(new Particle(this.x + 16, this.y - 8, (Math.random() - 0.5) * 3, -3 - Math.random() * 2, COLORS.questionGold, 5, 20, 0.2));
+          game.particles.push(new Particle(this.x + 16, this.y - 8, (Math.random() - 0.5) * 3, -3 - Math.random() * 2, '#fcd116', 5, 20, 0.2));
         }
       }
     } else if (this.type === 'brick') {
       if (game.player.isSuper) {
-        // Super Mario Shatters Brick!
         game.sounds.brickBreak();
         game.addScore(50);
-        game.particles.push(new Particle(this.x + 8, this.y + 8, -2.5, -5.5, COLORS.brickBody, 8, 35, 0.3));
-        game.particles.push(new Particle(this.x + 24, this.y + 8, 2.5, -5.5, COLORS.brickBody, 8, 35, 0.3));
-        game.particles.push(new Particle(this.x + 8, this.y + 24, -1.8, -3.5, COLORS.brickBody, 8, 35, 0.3));
-        game.particles.push(new Particle(this.x + 24, this.y + 24, 1.8, -3.5, COLORS.brickBody, 8, 35, 0.3));
+        const col = game.level.theme.brickBody;
+        game.particles.push(new Particle(this.x + 8, this.y + 8, -2.5, -5.5, col, 8, 35, 0.3));
+        game.particles.push(new Particle(this.x + 24, this.y + 8, 2.5, -5.5, col, 8, 35, 0.3));
+        game.particles.push(new Particle(this.x + 8, this.y + 24, -1.8, -3.5, col, 8, 35, 0.3));
+        game.particles.push(new Particle(this.x + 24, this.y + 24, 1.8, -3.5, col, 8, 35, 0.3));
         this.active = false;
       } else {
-        // Small Mario bumps brick
         game.sounds.bump();
       }
     }
@@ -932,46 +934,41 @@ class Block {
     }
   }
 
-  draw(ctx, camX, timer) {
+  draw(ctx, camX, timer, theme) {
     if (!this.active) return;
     const px = Math.round(this.x - camX);
     const py = Math.round(this.y + this.bumpOffset);
 
     if (this.type === 'ground') {
-      ctx.fillStyle = COLORS.groundBody;
+      ctx.fillStyle = theme.groundBody;
       ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-      ctx.fillStyle = COLORS.groundBrick;
+      ctx.fillStyle = theme.brickShadow;
       ctx.fillRect(px + 2, py + 8, 12, 10);
       ctx.fillRect(px + 16, py + 8, 14, 10);
       ctx.fillRect(px + 8, py + 20, 16, 10);
-      // Green Grass Border
-      ctx.fillStyle = COLORS.groundTop;
+      ctx.fillStyle = theme.groundTop;
       ctx.fillRect(px, py, TILE_SIZE, 6);
-      ctx.fillStyle = '#5cfc5c';
-      ctx.fillRect(px + 4, py, 6, 2);
-      ctx.fillRect(px + 18, py, 6, 2);
     } else if (this.type === 'brick') {
-      ctx.fillStyle = COLORS.brickBody;
+      ctx.fillStyle = theme.brickBody;
       ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-      ctx.fillStyle = COLORS.brickShadow;
+      ctx.fillStyle = theme.brickShadow;
       ctx.fillRect(px, py + 15, TILE_SIZE, 2);
       ctx.fillRect(px + 15, py, 2, 15);
       ctx.fillRect(px + 7, py + 16, 2, 16);
       ctx.fillRect(px + 23, py + 16, 2, 16);
-      ctx.fillStyle = COLORS.brickHighlight;
+      ctx.fillStyle = theme.brickHighlight;
       ctx.fillRect(px, py, TILE_SIZE, 2);
       ctx.fillRect(px, py, 2, TILE_SIZE);
     } else if (this.type === 'question') {
-      ctx.fillStyle = COLORS.questionGold;
+      ctx.fillStyle = '#fcd116';
       ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-      ctx.fillStyle = COLORS.questionDark;
+      ctx.fillStyle = '#c79200';
       ctx.strokeRect(px + 1.5, py + 1.5, TILE_SIZE - 3, TILE_SIZE - 3);
       ctx.fillRect(px + 2, py + 2, 2, 2);
       ctx.fillRect(px + TILE_SIZE - 4, py + 2, 2, 2);
       ctx.fillRect(px + 2, py + TILE_SIZE - 4, 2, 2);
       ctx.fillRect(px + TILE_SIZE - 4, py + TILE_SIZE - 4, 2, 2);
 
-      // Question Mark "?"
       ctx.fillStyle = '#000';
       const pulse = Math.sin(timer * 0.1) * 1;
       ctx.fillRect(px + 12, py + 7 + pulse, 8, 4);
@@ -979,16 +976,11 @@ class Block {
       ctx.fillRect(px + 14, py + 15 + pulse, 4, 4);
       ctx.fillRect(px + 14, py + 22 + pulse, 4, 4);
     } else if (this.type === 'empty') {
-      ctx.fillStyle = COLORS.questionEmpty;
+      ctx.fillStyle = '#8b7355';
       ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
       ctx.strokeStyle = '#5c4832';
       ctx.lineWidth = 2;
       ctx.strokeRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
-      ctx.fillStyle = '#3a2d1f';
-      ctx.fillRect(px + 3, py + 3, 2, 2);
-      ctx.fillRect(px + TILE_SIZE - 5, py + 3, 2, 2);
-      ctx.fillRect(px + 3, py + TILE_SIZE - 5, 2, 2);
-      ctx.fillRect(px + TILE_SIZE - 5, py + TILE_SIZE - 5, 2, 2);
     }
   }
 }
@@ -1001,24 +993,22 @@ class Pipe {
     this.height = height;
   }
 
-  draw(ctx, camX) {
+  draw(ctx, camX, theme) {
     const px = Math.round(this.x - camX);
     const py = Math.round(this.y);
 
-    // Pipe Lip (top section)
-    ctx.fillStyle = COLORS.pipeGreen;
+    ctx.fillStyle = theme.pipeGreen;
     ctx.fillRect(px - 4, py, this.width + 8, 20);
-    ctx.fillStyle = COLORS.pipeHighlight;
+    ctx.fillStyle = theme.pipeHighlight;
     ctx.fillRect(px - 2, py + 2, 6, 16);
-    ctx.fillStyle = COLORS.pipeShadow;
+    ctx.fillStyle = theme.pipeShadow;
     ctx.fillRect(px + this.width, py + 2, 3, 16);
 
-    // Pipe Body (stem)
-    ctx.fillStyle = COLORS.pipeGreen;
+    ctx.fillStyle = theme.pipeGreen;
     ctx.fillRect(px, py + 20, this.width, this.height - 20);
-    ctx.fillStyle = COLORS.pipeHighlight;
+    ctx.fillStyle = theme.pipeHighlight;
     ctx.fillRect(px + 2, py + 20, 6, this.height - 20);
-    ctx.fillStyle = COLORS.pipeShadow;
+    ctx.fillStyle = theme.pipeShadow;
     ctx.fillRect(px + this.width - 6, py + 20, 4, this.height - 20);
   }
 }
@@ -1046,7 +1036,7 @@ class Coin {
 
     ctx.save();
     ctx.translate(px + 8, py + 10);
-    ctx.fillStyle = COLORS.questionGold;
+    ctx.fillStyle = '#fcd116';
     ctx.fillRect(-currentW / 2, -10, currentW, 20);
     ctx.fillStyle = '#fff';
     ctx.fillRect(-currentW / 4, -8, Math.max(1, currentW / 3), 16);
@@ -1054,10 +1044,12 @@ class Coin {
   }
 }
 
-// --- 8. LEVEL GENERATOR ---
+// --- 8. MULTI-WORLD LEVEL BUILDER ---
 class Level {
-  constructor() {
-    this.width = 3900;
+  constructor(levelIndex = 0) {
+    this.levelIndex = levelIndex;
+    this.theme = WORLD_THEMES[levelIndex % WORLD_THEMES.length];
+    this.width = 3600 + levelIndex * 300; // Levels get progressively longer!
     this.floorY = 384;
     this.deathY = 460;
     this.blocks = [];
@@ -1068,6 +1060,7 @@ class Level {
     this.pipes = [];
     this.clouds = [];
     this.hills = [];
+    this.stars = [];
     this.flagpole = null;
     this.castle = null;
 
@@ -1075,30 +1068,41 @@ class Level {
   }
 
   init() {
-    this.blocks = [];
-    this.solids = [];
-    this.coins = [];
-    this.enemies = [];
-    this.mushrooms = [];
-    this.pipes = [];
-    this.clouds = [];
-    this.hills = [];
+    const diff = this.levelIndex; // 0 to 5
+    const enemySpeed = 1.0 + diff * 0.18; // Speed increases per level!
 
     // Background Scenery
-    for (let x = 60; x < this.width - 200; x += 220 + Math.random() * 150) {
-      this.clouds.push({ x, y: 40 + Math.random() * 80, size: 28 + Math.random() * 20 });
-    }
-    for (let x = 40; x < this.width; x += 400 + Math.random() * 200) {
-      this.hills.push({ x, y: this.floorY, radius: 70 + Math.random() * 40 });
+    if (this.theme.skyType === 'cosmic') {
+      for (let i = 0; i < 90; i++) {
+        this.stars.push({ x: Math.random() * this.width, y: Math.random() * 320, size: Math.random() > 0.8 ? 3 : 2 });
+      }
+    } else {
+      for (let x = 60; x < this.width - 200; x += 220 + Math.random() * 150) {
+        this.clouds.push({ x, y: 35 + Math.random() * 80, size: 28 + Math.random() * 20 });
+      }
+      for (let x = 40; x < this.width; x += 380 + Math.random() * 200) {
+        this.hills.push({ x, y: this.floorY, radius: 70 + Math.random() * 40 });
+      }
     }
 
-    // 1. Continuous Ground with Gaps
-    const groundSegments = [
-      { start: 0, end: 1100 },
-      { start: 1220, end: 2000 },
-      { start: 2120, end: 3100 },
-      { start: 3180, end: 3900 }
-    ];
+    // 1. Ground segments with gaps (difficulty increases: more gaps & narrower platforms)
+    const gapFreq = Math.min(4, 1 + Math.floor(diff / 1.5));
+    const groundSegments = [];
+    let curX = 0;
+
+    // Start safe zone
+    groundSegments.push({ start: 0, end: 950 - diff * 40 });
+    curX = 950 - diff * 40;
+
+    while (curX < this.width - 700) {
+      const gapWidth = 80 + diff * 16;
+      curX += gapWidth;
+      const segLength = Math.max(300, 750 - diff * 80 + Math.random() * 200);
+      groundSegments.push({ start: curX, end: curX + segLength });
+      curX += segLength;
+    }
+    // End zone for castle
+    groundSegments.push({ start: this.width - 750, end: this.width });
 
     groundSegments.forEach(seg => {
       for (let gx = seg.start; gx < seg.end; gx += TILE_SIZE) {
@@ -1114,18 +1118,16 @@ class Level {
     });
 
     // 2. Pipes
-    const pipeDefs = [
-      { x: 380, h: 64 },
-      { x: 680, h: 96 },
-      { x: 920, h: 128 },
-      { x: 1600, h: 72 },
-      { x: 2350, h: 96 }
-    ];
-    pipeDefs.forEach(p => {
-      const pipe = new Pipe(p.x, this.floorY - p.h, p.h);
-      this.pipes.push(pipe);
-      this.solids.push({ x: pipe.x, y: pipe.y, width: pipe.width, height: pipe.height });
-    });
+    const pipeCount = 3 + diff;
+    for (let i = 0; i < pipeCount; i++) {
+      const px = 400 + i * 550 + Math.random() * 120;
+      if (px < this.width - 800) {
+        const ph = 64 + (i % 3) * 32;
+        const pipe = new Pipe(px, this.floorY - ph, ph);
+        this.pipes.push(pipe);
+        this.solids.push({ x: pipe.x, y: pipe.y, width: pipe.width, height: pipe.height });
+      }
+    }
 
     // 3. Question Blocks & Bricks
     const addBlock = (x, y, type, item = null) => {
@@ -1135,83 +1137,66 @@ class Level {
       return b;
     };
 
-    // Zone 1: First Question block has coin, row of bricks with Super Mushroom!
+    // First zone powerup
     addBlock(240, this.floorY - 110, 'question', 'coin');
     addBlock(320, this.floorY - 110, 'brick');
     addBlock(352, this.floorY - 110, 'question', 'mushroom'); // Super Mushroom!
     addBlock(384, this.floorY - 110, 'brick');
 
-    // High platform row
-    for (let i = 0; i < 5; i++) {
-      addBlock(500 + i * 32, this.floorY - 110, i === 2 ? 'question' : 'brick', 'coin');
+    // High platform rows
+    for (let sec = 600; sec < this.width - 900; sec += 600) {
+      for (let i = 0; i < 4; i++) {
+        addBlock(sec + i * 32, this.floorY - 110, i === 1 ? 'question' : 'brick', i === 1 ? 'coin' : null);
+      }
+      if (diff >= 2) {
+        // High suspended platform over chasms
+        addBlock(sec + 160, this.floorY - 160, 'brick');
+        addBlock(sec + 192, this.floorY - 160, 'brick');
+      }
     }
-    addBlock(564, this.floorY - 200, 'question', 'coin');
 
-    // Chasm floating bridge
-    addBlock(1130, this.floorY - 70, 'brick');
-    addBlock(1162, this.floorY - 70, 'brick');
+    // Mid-level Mushroom
+    addBlock(1450, this.floorY - 120, 'question', 'mushroom');
 
-    // Zone 2 Blocks
-    addBlock(1340, this.floorY - 100, 'question', 'coin');
-    addBlock(1372, this.floorY - 100, 'brick');
-    addBlock(1404, this.floorY - 100, 'question', 'mushroom'); // Another Mushroom!
-    for (let i = 0; i < 6; i++) {
-      addBlock(1720 + i * 32, this.floorY - 120, 'brick');
-    }
-    addBlock(1784, this.floorY - 210, 'question', 'coin');
-
-    // Pyramid Stairs leading to flagpole
-    const stairX = 2700;
-    for (let step = 0; step < 7; step++) {
+    // Pyramid Stairs
+    const stairX = this.width - 950;
+    const steps = 6 + Math.min(2, diff);
+    for (let step = 0; step < steps; step++) {
       for (let h = 0; h <= step; h++) {
         addBlock(stairX + step * 32, this.floorY - (h + 1) * 32, 'brick');
       }
     }
 
     // 4. Floating Coins
-    const coinLocs = [
-      { x: 248, y: this.floorY - 45 },
-      { x: 508, y: this.floorY - 145 },
-      { x: 540, y: this.floorY - 145 },
-      { x: 572, y: this.floorY - 145 },
-      { x: 604, y: this.floorY - 145 },
-      { x: 1140, y: this.floorY - 110 },
-      { x: 1730, y: this.floorY - 150 },
-      { x: 1762, y: this.floorY - 150 },
-      { x: 1794, y: this.floorY - 150 },
-      { x: 1826, y: this.floorY - 150 },
-      { x: 1858, y: this.floorY - 150 },
-      { x: 2200, y: this.floorY - 60 },
-      { x: 2240, y: this.floorY - 80 },
-      { x: 2280, y: this.floorY - 60 }
-    ];
-    coinLocs.forEach(c => this.coins.push(new Coin(c.x, c.y)));
+    for (let x = 200; x < this.width - 800; x += 180) {
+      this.coins.push(new Coin(x, this.floorY - (Math.random() > 0.5 ? 45 : 120)));
+    }
 
-    // 5. Enemies (Goombas and Koopa Troopa!)
-    this.enemies.push(new Enemy(480, this.floorY - 26, 'goomba'));
-    this.enemies.push(new Enemy(750, this.floorY - 26, 'goomba'));
-    this.enemies.push(new Enemy(1020, this.floorY - 32, 'koopa')); // Koopa Troopa!
-    this.enemies.push(new Enemy(1450, this.floorY - 26, 'goomba'));
-    this.enemies.push(new Enemy(1500, this.floorY - 26, 'goomba'));
-    this.enemies.push(new Enemy(1850, this.floorY - 32, 'koopa'));
-    this.enemies.push(new Enemy(2260, this.floorY - 26, 'goomba'));
-    this.enemies.push(new Enemy(2450, this.floorY - 26, 'goomba'));
+    // 5. Enemies (Goombas & Koopas scale with level difficulty!)
+    const enemyCount = 6 + diff * 3;
+    for (let i = 0; i < enemyCount; i++) {
+      const ex = 450 + i * (2800 / enemyCount) + Math.random() * 80;
+      if (ex < this.width - 800) {
+        const isKoopa = (i % 3 === 2) || (diff >= 3 && i % 2 === 1);
+        this.enemies.push(new Enemy(ex, this.floorY - (isKoopa ? 32 : 26), isKoopa ? 'koopa' : 'goomba', enemySpeed));
+      }
+    }
 
-    // 6. Flagpole & Castle
-    const flagX = 3280;
+    // 6. Goal Flagpole & Castle
+    const flagX = this.width - 550;
     this.flagpole = {
       x: flagX,
       y: this.floorY - 280,
       width: 14,
       height: 280,
       flagY: this.floorY - 270,
-      ballColor: '#00a800',
-      poleColor: '#5cfc5c',
+      ballColor: this.theme.groundTop,
+      poleColor: this.theme.pipeHighlight,
       flagColor: '#e52521',
       reached: false
     };
 
-    const castleX = 3480;
+    const castleX = this.width - 360;
     this.castle = {
       x: castleX,
       y: this.floorY - 140,
@@ -1220,43 +1205,128 @@ class Level {
     };
   }
 
-  drawBackground(ctx, camX) {
-    ctx.fillStyle = COLORS.sky;
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  drawBackground(ctx, camX, timer) {
+    const theme = this.theme;
 
-    // Parallax Clouds
-    this.clouds.forEach(c => {
-      const cx = c.x - camX * 0.4;
-      if (cx > -120 && cx < ctx.canvas.width + 120) {
-        ctx.fillStyle = COLORS.cloudWhite;
+    // 1. Sky Rendering based on Theme
+    if (theme.skyType === 'sunset') {
+      const grad = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+      grad.addColorStop(0, '#c83820');
+      grad.addColorStop(0.55, '#e87838');
+      grad.addColorStop(1, '#f8b858');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    } else if (theme.skyType === 'cosmic') {
+      const grad = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+      grad.addColorStop(0, '#0a041c');
+      grad.addColorStop(0.7, '#200840');
+      grad.addColorStop(1, '#481868');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+      // Twinkling Stars & Big Moon
+      this.stars.forEach((s, idx) => {
+        const sx = s.x - camX * 0.15;
+        if (sx > -10 && sx < ctx.canvas.width + 10) {
+          ctx.fillStyle = (timer + idx * 7) % 30 < 15 ? '#ffffff' : '#ffd700';
+          ctx.fillRect(sx, s.y, s.size, s.size);
+        }
+      });
+
+      // Giant Moon
+      ctx.fillStyle = '#fffae0';
+      ctx.beginPath();
+      ctx.arc(680 - (camX * 0.05 % 800), 80, 36, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (theme.skyType === 'desert') {
+      const grad = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+      grad.addColorStop(0, '#f8d070');
+      grad.addColorStop(0.7, '#e8a848');
+      grad.addColorStop(1, '#c88028');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+      // Distant Pyramids
+      ctx.fillStyle = '#b88028';
+      for (let px = -200; px < ctx.canvas.width + 600; px += 400) {
+        const dpx = px - (camX * 0.18 % 400);
         ctx.beginPath();
-        ctx.arc(cx, c.y, c.size, 0, Math.PI * 2);
-        ctx.arc(cx + c.size * 0.7, c.y - c.size * 0.25, c.size * 0.8, 0, Math.PI * 2);
-        ctx.arc(cx - c.size * 0.7, c.y - c.size * 0.1, c.size * 0.7, 0, Math.PI * 2);
+        ctx.moveTo(dpx, this.floorY);
+        ctx.lineTo(dpx + 120, this.floorY - 110);
+        ctx.lineTo(dpx + 240, this.floorY);
         ctx.fill();
       }
-    });
-
-    // Parallax Hills
-    this.hills.forEach(h => {
-      const hx = h.x - camX * 0.6;
-      if (hx > -150 && hx < ctx.canvas.width + 150) {
-        ctx.fillStyle = COLORS.hillGreen;
+    } else if (theme.skyType === 'castle') {
+      ctx.fillStyle = theme.sky;
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      // Castle wall columns
+      ctx.fillStyle = '#22202a';
+      for (let cx = -100; cx < ctx.canvas.width + 200; cx += 140) {
+        ctx.fillRect(cx - (camX * 0.2 % 140), 60, 40, this.floorY - 60);
+      }
+    } else if (theme.skyType === 'cavern') {
+      ctx.fillStyle = theme.sky;
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      // Stalactites on ceiling
+      ctx.fillStyle = '#003848';
+      for (let cx = -40; cx < ctx.canvas.width + 80; cx += 50) {
+        const sx = cx - (camX * 0.3 % 50);
         ctx.beginPath();
-        ctx.arc(hx, h.y + 10, h.radius, Math.PI, 0, false);
-        ctx.fill();
-        ctx.fillStyle = COLORS.hillDark;
-        ctx.beginPath();
-        ctx.arc(hx, h.y + 10, h.radius - 12, Math.PI, 0, false);
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx + 25, 35 + (cx % 3) * 15);
+        ctx.lineTo(sx + 50, 0);
         ctx.fill();
       }
-    });
+    } else {
+      // Overworld classic sky
+      ctx.fillStyle = theme.sky;
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
+
+    // Parallax Clouds & Hills for open-air levels
+    if (this.clouds.length > 0) {
+      this.clouds.forEach(c => {
+        const cx = c.x - camX * 0.4;
+        if (cx > -120 && cx < ctx.canvas.width + 120) {
+          ctx.fillStyle = theme.skyType === 'sunset' ? '#f8d0b8' : '#ffffff';
+          ctx.beginPath();
+          ctx.arc(cx, c.y, c.size, 0, Math.PI * 2);
+          ctx.arc(cx + c.size * 0.7, c.y - c.size * 0.25, c.size * 0.8, 0, Math.PI * 2);
+          ctx.arc(cx - c.size * 0.7, c.y - c.size * 0.1, c.size * 0.7, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
+    if (this.hills.length > 0) {
+      this.hills.forEach(h => {
+        const hx = h.x - camX * 0.6;
+        if (hx > -150 && hx < ctx.canvas.width + 150) {
+          ctx.fillStyle = theme.groundTop;
+          ctx.beginPath();
+          ctx.arc(hx, h.y + 10, h.radius, Math.PI, 0, false);
+          ctx.fill();
+        }
+      });
+    }
+
+    // 2. Lava Hazards in Dungeon/Cosmic worlds
+    if (theme.hasLava) {
+      const lavaY = this.floorY + 22;
+      ctx.fillStyle = '#ff2200';
+      ctx.fillRect(0, lavaY, ctx.canvas.width, ctx.canvas.height - lavaY);
+      ctx.fillStyle = '#ff8800';
+      for (let lx = 0; lx < ctx.canvas.width; lx += 32) {
+        const wave = Math.sin((timer * 0.08) + lx) * 5;
+        ctx.fillRect(lx, lavaY + wave, 24, 6);
+      }
+    }
 
     // Flagpole Base Block
     if (this.flagpole) {
       const bx = Math.round(this.flagpole.x - 9 - camX);
       const by = this.floorY - 16;
-      ctx.fillStyle = COLORS.questionEmpty;
+      ctx.fillStyle = '#8b7355';
       ctx.fillRect(bx, by, 32, 16);
       ctx.strokeStyle = '#3a2d1f';
       ctx.strokeRect(bx, by, 32, 16);
@@ -1268,24 +1338,22 @@ class Level {
     const cx = Math.round(this.castle.x - camX);
     const cy = Math.round(this.castle.y);
 
-    ctx.fillStyle = COLORS.brickBody;
+    ctx.fillStyle = this.theme.brickBody;
     ctx.fillRect(cx, cy + 40, this.castle.width, this.castle.height - 40);
     ctx.fillRect(cx + 20, cy, this.castle.width - 40, 40);
     for (let i = 0; i < 4; i++) {
       ctx.fillRect(cx + 20 + i * 30, cy - 14, 18, 14);
     }
 
-    // Doorway
     ctx.fillStyle = '#000';
     ctx.beginPath();
     ctx.arc(cx + this.castle.width / 2, cy + this.castle.height - 35, 20, Math.PI, 0);
     ctx.fill();
     ctx.fillRect(cx + this.castle.width / 2 - 20, cy + this.castle.height - 35, 40, 35);
 
-    // Castle Flag
     ctx.fillStyle = '#fff';
     ctx.fillRect(cx + this.castle.width / 2 - 2, cy - 35, 4, 25);
-    ctx.fillStyle = COLORS.marioRed;
+    ctx.fillStyle = '#e52521';
     ctx.beginPath();
     ctx.moveTo(cx + this.castle.width / 2 + 2, cy - 35);
     ctx.lineTo(cx + this.castle.width / 2 + 20, cy - 25);
@@ -1301,7 +1369,7 @@ class Level {
     ctx.fillStyle = this.flagpole.poleColor;
     ctx.fillRect(px, py, this.flagpole.width, this.flagpole.height);
 
-    ctx.fillStyle = COLORS.questionGold;
+    ctx.fillStyle = '#fcd116';
     ctx.beginPath();
     ctx.arc(px + this.flagpole.width / 2, py - 4, 8, 0, Math.PI * 2);
     ctx.fill();
@@ -1327,7 +1395,8 @@ class Game {
     this.ctx = this.canvas.getContext('2d');
     this.sounds = new SoundSystem();
 
-    this.state = 'START'; // 'START', 'PLAYING', 'PAUSED', 'DYING', 'FLAG_SLIDE', 'VICTORY', 'GAMEOVER'
+    this.state = 'START'; // 'START', 'TRANSITION', 'PLAYING', 'PAUSED', 'DYING', 'FLAG_SLIDE', 'VICTORY', 'GAMEOVER'
+    this.currentLevelIndex = 0; // 0 to 5
     this.score = 0;
     this.coins = 0;
     this.lives = 3;
@@ -1336,12 +1405,13 @@ class Game {
     this.highScore = parseInt(localStorage.getItem('mario_highscore') || '0', 10);
 
     this.camX = 0;
-    this.level = new Level();
+    this.level = new Level(this.currentLevelIndex);
     this.player = new Player(80, this.level.floorY - 40);
     this.particles = [];
     this.floatingTexts = [];
     this.globalTimer = 0;
 
+    this.transitionTimer = 0;
     this.victoryTimer = 0;
     this.fireworkTimer = 0;
     this.deathTimer = 0;
@@ -1356,8 +1426,17 @@ class Game {
 
     this.bindInputs();
     this.bindButtons();
+    this.updateHUDHeader();
 
     requestAnimationFrame(this.loop.bind(this));
+  }
+
+  updateHUDHeader() {
+    const badge = document.getElementById('levelBadge');
+    const infoTag = document.getElementById('worldInfoTag');
+    const theme = WORLD_THEMES[this.currentLevelIndex];
+    if (badge) badge.textContent = `MUNDO ${theme.code}`;
+    if (infoTag) infoTag.textContent = `MUNDO ${theme.code} • ${theme.name.toUpperCase()}`;
   }
 
   bindInputs() {
@@ -1376,7 +1455,8 @@ class Game {
 
       if (e.code === 'Enter' || e.code === 'Space') {
         if (this.state === 'START') this.startGame();
-        else if (this.state === 'GAMEOVER' || this.state === 'VICTORY') this.restartGame();
+        else if (this.state === 'GAMEOVER') this.restartGame();
+        else if (this.state === 'VICTORY' && this.currentLevelIndex === 5) this.restartCampaign();
       }
 
       if (e.code === 'KeyP' || e.code === 'Escape') {
@@ -1385,7 +1465,7 @@ class Game {
       }
 
       if (e.code === 'KeyM') this.toggleSound();
-      if (e.code === 'KeyR') this.resetLevel();
+      if (e.code === 'KeyR') this.resetCurrentLevel();
     });
 
     window.addEventListener('keyup', e => {
@@ -1401,7 +1481,8 @@ class Game {
     this.canvas.addEventListener('click', () => {
       this.sounds.init();
       if (this.state === 'START') this.startGame();
-      else if (this.state === 'GAMEOVER' || this.state === 'VICTORY') this.restartGame();
+      else if (this.state === 'GAMEOVER') this.restartGame();
+      else if (this.state === 'VICTORY' && this.currentLevelIndex === 5) this.restartCampaign();
     });
   }
 
@@ -1417,7 +1498,7 @@ class Game {
       });
     }
 
-    if (resetBtn) resetBtn.addEventListener('click', () => this.resetLevel());
+    if (resetBtn) resetBtn.addEventListener('click', () => this.resetCurrentLevel());
 
     if (fullscreenBtn) {
       fullscreenBtn.addEventListener('click', () => {
@@ -1430,7 +1511,6 @@ class Game {
       });
     }
 
-    // Touch controls
     const touchLeft = document.getElementById('touchLeft');
     const touchRight = document.getElementById('touchRight');
     const touchJump = document.getElementById('touchJump');
@@ -1445,7 +1525,8 @@ class Game {
     setupBtn(touchRight, () => { this.keys.right = true; }, () => { this.keys.right = false; });
     setupBtn(touchJump, () => {
       this.keys.jump = true;
-      if (this.state === 'START' || this.state === 'GAMEOVER' || this.state === 'VICTORY') this.startGame();
+      if (this.state === 'START' || this.state === 'GAMEOVER') this.startGame();
+      else if (this.state === 'VICTORY' && this.currentLevelIndex === 5) this.restartCampaign();
     }, () => {
       this.keys.jump = false;
     });
@@ -1478,17 +1559,28 @@ class Game {
   }
 
   startGame() {
-    this.state = 'PLAYING';
+    this.state = 'TRANSITION';
+    this.transitionTimer = 90; // 1.5 seconds world title screen
     this.timeLeft = 300;
+    this.updateHUDHeader();
   }
 
-  resetLevel() {
-    this.level = new Level();
-    this.player.reset();
+  loadLevel(levelIndex) {
+    this.currentLevelIndex = levelIndex;
+    this.level = new Level(this.currentLevelIndex);
+    this.player.x = 80;
+    this.player.y = this.level.floorY - 40;
+    this.player.vx = 0;
+    this.player.vy = 0;
     this.camX = 0;
     this.particles = [];
     this.floatingTexts = [];
     this.timeLeft = 300;
+    this.updateHUDHeader();
+  }
+
+  resetCurrentLevel() {
+    this.loadLevel(this.currentLevelIndex);
     this.state = 'PLAYING';
   }
 
@@ -1497,18 +1589,27 @@ class Game {
     this.coins = 0;
     this.lives = 3;
     this.player.setSuper(false);
-    this.resetLevel();
+    this.loadLevel(this.currentLevelIndex);
+    this.state = 'PLAYING';
+  }
+
+  restartCampaign() {
+    this.score = 0;
+    this.coins = 0;
+    this.lives = 3;
+    this.player.setSuper(false);
+    this.currentLevelIndex = 0;
+    this.loadLevel(0);
+    this.startGame();
   }
 
   handlePlayerDamage() {
     if (this.player.isSuper) {
-      // Revert from Super Mario to Small Mario with invulnerability
       this.player.setSuper(false);
       this.player.invulnerableTimer = 120;
       this.sounds.bump();
       this.floatingTexts.push(new FloatingText('SHRINK!', this.player.x, this.player.y - 10, '#ffffff'));
     } else {
-      // Lose Life
       this.lives--;
       if (this.lives <= 0) {
         this.sounds.gameover();
@@ -1554,12 +1655,10 @@ class Game {
       if (solid.active === false) continue;
       if (this.checkCollision(p, solid)) {
         if (p.vy > 0) {
-          // Landing
           p.y = solid.y - p.height;
           p.vy = 0;
           p.isGrounded = true;
         } else if (p.vy < 0) {
-          // Head bump
           p.y = solid.y + solid.height;
           p.vy = 0;
           if (solid instanceof Block) {
@@ -1571,7 +1670,7 @@ class Game {
       }
     }
 
-    // 3. Void Fall
+    // 3. Fall into void / Lava death
     if (p.y > this.level.deathY) {
       this.player.setSuper(false);
       this.lives--;
@@ -1596,12 +1695,12 @@ class Game {
         this.addCoin();
         this.floatingTexts.push(new FloatingText('+100', coin.x, coin.y - 10));
         for (let i = 0; i < 4; i++) {
-          this.particles.push(new Particle(coin.x + 8, coin.y + 10, (Math.random() - 0.5) * 3, -1.5 - Math.random() * 2, COLORS.questionGold, 4, 18, 0.1));
+          this.particles.push(new Particle(coin.x + 8, coin.y + 10, (Math.random() - 0.5) * 3, -1.5 - Math.random() * 2, '#fcd116', 4, 18, 0.1));
         }
       }
     }
 
-    // 5. Super Mushroom Pickups
+    // 5. Mushroom Pickups
     for (const m of this.level.mushrooms) {
       if (!m.collected && !m.isSprouting && this.checkCollision(p, m)) {
         m.collected = true;
@@ -1610,12 +1709,12 @@ class Game {
         this.addScore(1000);
         this.floatingTexts.push(new FloatingText('+1000 SUPER!', m.x - 10, m.y - 15, '#5cfc5c'));
         for (let i = 0; i < 12; i++) {
-          this.particles.push(new Particle(m.x + 12, m.y + 12, (Math.random() - 0.5) * 4, -2 - Math.random() * 3, COLORS.shroomRed, 4, 25, 0.1));
+          this.particles.push(new Particle(m.x + 12, m.y + 12, (Math.random() - 0.5) * 4, -2 - Math.random() * 3, '#e52521', 4, 25, 0.1));
         }
       }
     }
 
-    // 6. Enemy Interactions (Goombas & Koopas)
+    // 6. Enemy Interactions
     for (const enemy of this.level.enemies) {
       if (enemy.isDead && enemy.type === 'goomba') continue;
 
@@ -1623,10 +1722,8 @@ class Game {
         const marioBottom = p.y + p.height;
         const enemyTop = enemy.y;
 
-        // Did Mario land on top of enemy?
         if (p.vy > 0 && marioBottom - p.vy <= enemyTop + 14) {
           if (enemy.type === 'goomba') {
-            // Stomp Goomba
             enemy.isDead = true;
             this.sounds.stomp();
             this.addScore(200);
@@ -1637,39 +1734,34 @@ class Game {
             }
           } else if (enemy.type === 'koopa') {
             if (!enemy.isShell) {
-              // Stomp Koopa -> Turn into shell
               enemy.isShell = true;
               enemy.shellMoving = false;
               this.sounds.stomp();
               this.addScore(100);
               p.vy = this.keys.jump ? -11.0 : -7.5;
             } else if (!enemy.shellMoving) {
-              // Kick motionless shell
               enemy.shellMoving = p.x < enemy.x ? 1 : -1;
               this.sounds.kickShell();
               this.addScore(400);
               p.vy = -6;
             } else {
-              // Stop moving shell
               enemy.shellMoving = false;
               this.sounds.stomp();
               p.vy = -7.5;
             }
           }
         } else if (enemy.type === 'koopa' && enemy.isShell && !enemy.shellMoving) {
-          // Walk into motionless shell -> Kick it!
           enemy.shellMoving = p.x < enemy.x ? 1 : -1;
           this.sounds.kickShell();
           this.addScore(400);
         } else if (p.invulnerableTimer === 0) {
-          // Mario takes hit
           this.handlePlayerDamage();
           return;
         }
       }
     }
 
-    // 7. Moving Shell destroying other enemies
+    // 7. Moving Shell Collisions with Enemies
     for (const shell of this.level.enemies) {
       if (shell.type === 'koopa' && shell.isShell && shell.shellMoving) {
         for (const other of this.level.enemies) {
@@ -1718,7 +1810,12 @@ class Game {
   update() {
     this.globalTimer++;
 
-    if (this.state === 'PLAYING') {
+    if (this.state === 'TRANSITION') {
+      this.transitionTimer--;
+      if (this.transitionTimer <= 0) {
+        this.state = 'PLAYING';
+      }
+    } else if (this.state === 'PLAYING') {
       this.timeCounter++;
       if (this.timeCounter >= 60) {
         this.timeLeft--;
@@ -1773,23 +1870,32 @@ class Game {
       this.updateCamera();
     } else if (this.state === 'VICTORY') {
       this.victoryTimer++;
+      // Time bonus countdown
       if (this.timeLeft > 0 && this.victoryTimer % 2 === 0) {
         this.timeLeft--;
         this.addScore(50);
         this.sounds.coin();
       }
+
+      // Fireworks
       this.fireworkTimer++;
-      if (this.fireworkTimer > 30) {
+      if (this.fireworkTimer > 28) {
         this.fireworkTimer = 0;
         const fx = this.level.castle.x + Math.random() * this.level.castle.width;
         const fy = this.level.castle.y - 40 - Math.random() * 60;
-        const colors = ['#fcd116', '#e52521', '#5cfc5c', '#ffffff', '#5c94fc'];
+        const colors = ['#fcd116', '#e52521', '#5cfc5c', '#ffffff', '#5c94fc', '#ffd700'];
         const chosenCol = colors[Math.floor(Math.random() * colors.length)];
         for (let i = 0; i < 20; i++) {
           const angle = Math.random() * Math.PI * 2;
           const spd = 1.5 + Math.random() * 3.5;
           this.particles.push(new Particle(fx, fy, Math.cos(angle) * spd, Math.sin(angle) * spd, chosenCol, 4, 30, 0.08));
         }
+      }
+
+      // Automatically advance to next level after fireworks (if not final world)
+      if (this.currentLevelIndex < 5 && this.victoryTimer > 220) {
+        this.loadLevel(this.currentLevelIndex + 1);
+        this.startGame();
       }
     }
 
@@ -1807,18 +1913,18 @@ class Game {
     ctx.fillText('MARIO', 30, 22);
     ctx.fillText(this.score.toString().padStart(6, '0'), 30, 36);
 
-    ctx.fillStyle = COLORS.questionGold;
+    ctx.fillStyle = '#fcd116';
     ctx.fillText('●', 210, 29);
     ctx.fillStyle = '#fff';
     ctx.fillText(`x${this.coins.toString().padStart(2, '0')}`, 226, 29);
 
     ctx.fillText('MUNDO', 360, 22);
-    ctx.fillText('1-1', 374, 36);
+    ctx.fillText(this.level.theme.code, 374, 36);
 
     ctx.fillText('TIEMPO', 510, 22);
     ctx.fillText(Math.max(0, this.timeLeft).toString().padStart(3, '0'), 526, 36);
 
-    ctx.fillStyle = COLORS.marioRed;
+    ctx.fillStyle = '#e52521';
     ctx.fillText('♥', 680, 29);
     ctx.fillStyle = '#fff';
     ctx.fillText(`x${this.lives}`, 698, 29);
@@ -1829,12 +1935,12 @@ class Game {
   drawOverlay(title, subtitle, extra = '') {
     const ctx = this.ctx;
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     ctx.textAlign = 'center';
     ctx.font = '22px "Press Start 2P", monospace';
-    ctx.fillStyle = COLORS.questionGold;
+    ctx.fillStyle = '#fcd116';
     ctx.shadowColor = '#000';
     ctx.shadowBlur = 8;
     ctx.fillText(title, this.canvas.width / 2, this.canvas.height / 2 - 30);
@@ -1852,16 +1958,45 @@ class Game {
     ctx.restore();
   }
 
+  drawTransitionScreen() {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    ctx.textAlign = 'center';
+    ctx.font = '16px "Press Start 2P", monospace';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`MUNDO ${this.level.theme.code}`, this.canvas.width / 2, this.canvas.height / 2 - 40);
+
+    ctx.font = '11px "Press Start 2P", monospace';
+    ctx.fillStyle = '#fcd116';
+    ctx.fillText(this.level.theme.name.toUpperCase(), this.canvas.width / 2, this.canvas.height / 2 - 15);
+
+    // Mario icon & lives
+    ctx.fillStyle = '#e52521';
+    ctx.fillText('♥', this.canvas.width / 2 - 25, this.canvas.height / 2 + 25);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`x  ${this.lives}`, this.canvas.width / 2 + 15, this.canvas.height / 2 + 25);
+
+    ctx.restore();
+  }
+
   render() {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // 1. Background
-    this.level.drawBackground(ctx, this.camX);
+    if (this.state === 'TRANSITION') {
+      this.drawTransitionScreen();
+      return;
+    }
+
+    // 1. Theme-Specific Background
+    this.level.drawBackground(ctx, this.camX, this.globalTimer);
 
     // 2. Blocks & Pipes
-    this.level.blocks.forEach(b => b.draw(ctx, this.camX, this.globalTimer));
-    this.level.pipes.forEach(p => p.draw(ctx, this.camX));
+    this.level.blocks.forEach(b => b.draw(ctx, this.camX, this.globalTimer, this.level.theme));
+    this.level.pipes.forEach(p => p.draw(ctx, this.camX, this.level.theme));
 
     // 3. Items & Coins
     this.level.coins.forEach(c => c.draw(ctx, this.camX));
@@ -1871,10 +2006,10 @@ class Game {
     this.level.drawFlagpole(ctx, this.camX);
     this.level.drawCastle(ctx, this.camX);
 
-    // 5. Enemies (Goombas & Koopas)
+    // 5. Enemies
     this.level.enemies.forEach(e => e.draw(ctx, this.camX));
 
-    // 6. Player (Mario)
+    // 6. Player
     if (this.state !== 'VICTORY' || this.player.x < this.level.castle.x + this.level.castle.width / 2) {
       this.player.draw(ctx, this.camX);
     }
@@ -1891,7 +2026,7 @@ class Game {
       const pulse = Math.floor(this.globalTimer / 30) % 2 === 0;
       this.drawOverlay(
         'SUPER MARIO BROS',
-        pulse ? 'PRESIONA ENTER O ESPACIO' : '★ HAZ CLIC PARA JUGAR ★',
+        pulse ? 'PRESIONA ENTER O ESPACIO' : '★ 6 MUNDOS COMPLETOS ★',
         `RÉCORD: ${this.highScore}  •  FLECHAS O A/D Y ESPACIO`
       );
     } else if (this.state === 'PAUSED') {
@@ -1899,15 +2034,24 @@ class Game {
     } else if (this.state === 'GAMEOVER') {
       this.drawOverlay(
         '¡GAME OVER!',
-        'PRESIONA ENTER O CLIC PARA REINTENTAR',
+        'PRESIONA ENTER O CLIC PARA REINTENTAR ESTE MUNDO',
         `PUNTUACIÓN FINAL: ${this.score}  •  RÉCORD: ${this.highScore}`
       );
     } else if (this.state === 'VICTORY') {
-      this.drawOverlay(
-        '¡NIVEL COMPLETADO!',
-        '¡FELICIDADES, HAS SALVADO EL REINO!',
-        `PUNTUACIÓN TOTAL: ${this.score}  •  CLIC / ENTER PARA REJUGAR`
-      );
+      const isFinalWorld = this.currentLevelIndex === 5;
+      if (isFinalWorld) {
+        this.drawOverlay(
+          '¡CAMPEÓN SUPREMO!',
+          '¡HAS COMPLETADO LOS 6 MUNDOS!',
+          `PUNTUACIÓN TOTAL: ${this.score}  •  ENTER PARA REJUGAR LA CAMPAÑA`
+        );
+      } else {
+        this.drawOverlay(
+          `¡${this.level.theme.code} COMPLETADO!`,
+          `SIGUIENTE: MUNDO ${WORLD_THEMES[this.currentLevelIndex + 1].code}`,
+          `PUNTUACIÓN: ${this.score}  •  AVANZANDO...`
+        );
+      }
     }
   }
 
