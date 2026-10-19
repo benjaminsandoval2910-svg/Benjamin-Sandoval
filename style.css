@@ -1,0 +1,319 @@
+/* ==========================================================================
+   SUPER MARIO BROS - RETRO ARCADE STYLESHEET
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  --color-bg: #0f1118;
+  --color-arcade-frame: #1e2230;
+  --color-arcade-border: #3b425a;
+  --color-mario-red: #e52521;
+  --color-coin-gold: #fcd116;
+  --color-sky-blue: #5c94fc;
+  --color-pipe-green: #00a800;
+  --color-brick-brown: #b84418;
+  --color-text-white: #ffffff;
+  --color-text-dim: #9aa5b8;
+  --font-retro: 'Press Start 2P', 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-white);
+  font-family: var(--font-retro);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(ellipse at 50% 20%, rgba(92, 148, 252, 0.18), transparent 70%),
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
+  padding: 10px;
+}
+
+/* Container */
+.game-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 960px;
+}
+
+/* Header & Marquee */
+.arcade-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--color-arcade-frame);
+  border: 4px solid var(--color-arcade-border);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.game-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--color-coin-gold);
+  text-shadow: 2px 2px 0px var(--color-mario-red), 0 0 10px rgba(252, 209, 22, 0.5);
+  letter-spacing: 1px;
+}
+
+.game-title .badge {
+  background: var(--color-mario-red);
+  color: #fff;
+  font-size: 8px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  text-shadow: none;
+  animation: pulse-glow 1.5s infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0% { transform: scale(0.98); opacity: 0.85; }
+  100% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 6px var(--color-mario-red)); }
+}
+
+.header-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.retro-btn-sm {
+  background: #2a3044;
+  border: 2px solid #4a5472;
+  color: var(--color-text-white);
+  font-family: var(--font-retro);
+  font-size: 9px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.1s ease;
+}
+
+.retro-btn-sm:hover {
+  background: #39425e;
+  border-color: var(--color-coin-gold);
+  color: var(--color-coin-gold);
+  transform: translateY(-1px);
+}
+
+.retro-btn-sm:active {
+  transform: translateY(1px);
+}
+
+/* Canvas Screen Box */
+.arcade-cabinet {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border: 6px solid var(--color-arcade-frame);
+  outline: 4px solid var(--color-arcade-border);
+  box-shadow: 
+    0 16px 40px rgba(0, 0, 0, 0.7),
+    inset 0 0 20px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Canvas Element */
+#gameCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Scanlines Effect Overlay */
+.crt-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.22) 50%
+  );
+  background-size: 100% 4px;
+  z-index: 10;
+  opacity: 0.55;
+}
+
+.crt-vignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.6);
+  z-index: 11;
+}
+
+/* Arcade Bottom Bar / Controls Helper */
+.arcade-footer {
+  width: 100%;
+  background: var(--color-arcade-frame);
+  border: 4px solid var(--color-arcade-border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 9px;
+  color: var(--color-text-dim);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.controls-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.key-badge {
+  display: inline-block;
+  background: #141722;
+  border: 1px solid #4a5472;
+  border-bottom: 3px solid #333a4f;
+  color: var(--color-coin-gold);
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 8px;
+  margin-right: 4px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Mobile Virtual Touch Controls */
+.touch-controls {
+  display: none;
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  width: 100%;
+  padding: 0 16px;
+  justify-content: space-between;
+  align-items: flex-end;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.d-pad, .action-buttons {
+  display: flex;
+  gap: 12px;
+  pointer-events: auto;
+}
+
+.touch-btn {
+  width: 54px;
+  height: 54px;
+  background: rgba(20, 24, 38, 0.85);
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  color: #fff;
+  font-family: var(--font-retro);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  transition: transform 0.05s, background 0.05s;
+}
+
+.touch-btn:active, .touch-btn.pressed {
+  background: var(--color-mario-red);
+  border-color: #fff;
+  transform: scale(0.92);
+}
+
+.touch-btn.jump-btn {
+  background: rgba(229, 37, 33, 0.88);
+  width: 60px;
+  height: 60px;
+  font-size: 14px;
+}
+
+.touch-btn.jump-btn:active, .touch-btn.jump-btn.pressed {
+  background: #ff524f;
+}
+
+/* Responsive Rules */
+@media (max-width: 768px) {
+  .touch-controls {
+    display: flex;
+  }
+  
+  .game-title {
+    font-size: 11px;
+  }
+  
+  .arcade-footer {
+    font-size: 8px;
+  }
+
+  .controls-legend {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 4px;
+  }
+  
+  .game-title .badge {
+    display: none;
+  }
+  
+  .touch-btn {
+    width: 46px;
+    height: 46px;
+    font-size: 13px;
+  }
+  
+  .touch-btn.jump-btn {
+    width: 52px;
+    height: 52px;
+    font-size: 12px;
+  }
+}

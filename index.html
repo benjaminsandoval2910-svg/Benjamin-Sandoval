@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Super Mario Bros - World 1-1</title>
+  <meta name="description" content="Juego de plataformas 2D en HTML5 Canvas inspirado en Super Mario Bros con físicas clásicas, enemigos, bloques sorpresa, monedas y banderín de meta." />
+  <meta property="og:title" content="Super Mario Bros - World 1-1" />
+  <meta property="og:description" content="Juego de plataformas 2D en HTML5 Canvas con físicas de Super Mario Bros, Goombas, Koopas, champiñones y castillo final." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+  <main class="game-wrapper" role="main">
+    <!-- Arcade Cabinet Header -->
+    <header class="arcade-header">
+      <div class="game-title">
+        <span>★ SUPER MARIO BROS ★</span>
+        <span class="badge">MUNDO 1-1</span>
+      </div>
+      <div class="header-controls">
+        <button id="soundBtn" class="retro-btn-sm" type="button" title="Activar/Silenciar sonido (M)">
+          <span id="soundIcon">🔊</span>
+          <span id="soundText">AUDIO</span>
+        </button>
+        <button id="resetBtn" class="retro-btn-sm" type="button" title="Reiniciar nivel (R)">
+          <span>↺</span>
+          <span>REINICIAR</span>
+        </button>
+        <button id="fullscreenBtn" class="retro-btn-sm" type="button" title="Pantalla completa">
+          <span>⛶</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Arcade Screen -->
+    <div class="arcade-cabinet" id="cabinet">
+      <canvas id="gameCanvas" width="800" height="450" aria-label="Pantalla del juego de Super Mario Bros"></canvas>
+      
+      <!-- Retro CRT Scanline Filter -->
+      <div class="crt-overlay" aria-hidden="true"></div>
+      <div class="crt-vignette" aria-hidden="true"></div>
+
+      <!-- Virtual Touch Controls for Mobile / Tablets -->
+      <div class="touch-controls" id="touchControls">
+        <div class="d-pad">
+          <button id="touchLeft" class="touch-btn" type="button" aria-label="Mover a la izquierda">◀</button>
+          <button id="touchRight" class="touch-btn" type="button" aria-label="Mover a la derecha">▶</button>
+        </div>
+        <div class="action-buttons">
+          <button id="touchJump" class="touch-btn jump-btn" type="button" aria-label="Saltar">A</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arcade Footer / Controls Guide -->
+    <footer class="arcade-footer">
+      <div class="controls-legend">
+        <div class="legend-item">
+          <span class="key-badge">←</span><span class="key-badge">→</span> o <span class="key-badge">A</span><span class="key-badge">D</span>
+          <span>Moverse</span>
+        </div>
+        <div class="legend-item">
+          <span class="key-badge">ESPACIO</span> / <span class="key-badge">W</span> / <span class="key-badge">↑</span>
+          <span>Saltar</span>
+        </div>
+        <div class="legend-item">
+          <span class="key-badge">P</span>
+          <span>Pausa</span>
+        </div>
+        <div class="legend-item">
+          <span class="key-badge">M</span>
+          <span>Sonido</span>
+        </div>
+      </div>
+      <div class="info-tag">
+        <span>HTML5 CANVAS • VANILLA JS • VERCEL STATIC</span>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Game Script -->
+  <script type="module" src="./game.js"></script>
+</body>
+</html>

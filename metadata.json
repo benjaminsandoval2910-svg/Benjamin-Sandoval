@@ -1,0 +1,6 @@
+{
+  "name": "Super Mario Web - 2D Platformer",
+  "description": "Juego de plataformas 2D en HTML5 Canvas inspirado en Super Mario Bros con físicas, colisiones, enemigos y desplazamiento horizontal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
